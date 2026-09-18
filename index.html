@@ -1,470 +1,481 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
 
-    <title>Future Touch</title>
+    <meta name="theme-color" content="#080b18">
+
+    <title>Future Touch | Predictive Touch Intelligence</title>
 
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-    <div class="container">
+    <div class="container mobile-friendly">
 
         <!-- HEADER -->
+        <header class="header">
 
-        <h1>FUTURE TOUCH</h1>
+            <div class="brand">
 
-        <p class="subtitle">
-            Predictive Touch Intelligence
-        </p>
+                <div class="brand-icon">✦</div>
 
+                <div class="brand-text">
+                    <h1>FUTURE TOUCH</h1>
+                    <p>Predictive Touch Intelligence</p>
+                </div>
 
-        <!-- LIVE AI STATUS -->
-
-        <div class="ai-live-status">
-
-            <span class="status-dot"></span>
-
-            <div>
-                <strong id="liveAIStatus">
-                    AI ACTIVE
-                </strong>
-
-                <p id="liveAIMessage">
-                    Ready to learn your behavior
-                </p>
             </div>
-
-        </div>
-
-
-        <!-- QUESTION -->
-
-        <p class="question">
-            What do you want to do?
-        </p>
-
-
-        <!-- ONE HANDED MODE -->
-
-        <div class="mode-bar">
-
-            <span>
-                👋 One-Handed Mode
-            </span>
 
             <button
                 id="oneHandedToggle"
+                class="one-handed-toggle"
+                type="button"
                 onclick="toggleOneHanded()">
 
                 OFF
 
             </button>
 
-        </div>
+        </header>
 
 
-        <!-- HACKATHON DEMO -->
+        <main>
 
-        <div class="demo-bar">
+            <!-- LIVE AI STATUS -->
+            <section class="live-ai-card">
 
-            <span>
-                🎬 Hackathon Demo
-            </span>
+                <div class="live-ai-heading">
 
-            <button onclick="startDemo()">
+                    <span class="status-dot"></span>
 
-                ▶ Start Demo
-
-            </button>
-
-        </div>
-
-
-        <!-- QUICK ACTION BUTTONS -->
-
-        <div class="buttons">
-
-            <button
-                onclick="recordAction('Camera')"
-                id="Camera">
-
-                📷 Camera
-
-            </button>
-
-
-            <button
-                onclick="recordAction('Messages')"
-                id="Messages">
-
-                💬 Messages
-
-            </button>
-
-
-            <button
-                onclick="recordAction('Music')"
-                id="Music">
-
-                🎵 Music
-
-            </button>
-
-
-            <button
-                onclick="recordAction('Settings')"
-                id="Settings">
-
-                ⚙️ Settings
-
-            </button>
-
-        </div>
-
-
-        <!-- MIS-TOUCH ALERT -->
-
-        <div
-            id="mistouchAlert"
-            class="mistouch">
-        </div>
-
-
-        <!-- AI PREDICTION -->
-
-        <div class="prediction">
-
-
-            <div class="prediction-header">
-
-                <span class="ai-icon">
-                    🤖
-                </span>
-
-                <div>
-
-                    <h2>
-                        AI Prediction
+                    <h2 id="liveAIStatus">
+                        AI LEARNING
                     </h2>
 
+                </div>
+
+                <p id="liveAIMessage">
+                    Building your interaction pattern...
+                </p>
+
+            </section>
+
+
+            <!-- DEMO CONTROL -->
+            <section class="demo-control">
+
+                <div class="demo-content">
+
+                    <h2>Interactive AI Demo</h2>
+
                     <p>
-                        Predictive Touch Intelligence
+                        Let Future Touch learn your interaction pattern.
                     </p>
 
                 </div>
 
-            </div>
+                <div class="demo-buttons">
 
+                    <button
+                        id="demoButton"
+                        type="button"
+                        onclick="startDemo()">
 
-            <!-- PREDICTION RESULT -->
+                        ▶ Start Demo
 
-            <div class="prediction-result">
+                    </button>
 
-    <span class="small-label">
-        🔮 NEXT LIKELY ACTION
-    </span>
+                    <button
+                        class="reset-button"
+                        type="button"
+                        onclick="resetPrototype()">
 
-    <div class="next-action-card">
+                        ↻ Reset
 
-        <div class="next-action-icon">
-            ✨
-        </div>
-
-        <div class="next-action-info">
-
-            <strong id="nextActionName">
-                Waiting...
-            </strong>
-
-            <span id="nextActionConfidence">
-                No prediction yet
-            </span>
-
-        </div>
-
-    </div>
-
-    <div id="predictionText">
-        Waiting for interactions...
-    </div>
-
-</div>
-
-
-            <!-- CONFIDENCE -->
-
-            <div class="confidence-box">
-
-                <div class="confidence-title">
-
-                    <span>
-                        Prediction Confidence
-                    </span>
-
-
-                    <strong id="confidenceText">
-                        0%
-                    </strong>
+                    </button>
 
                 </div>
 
+            </section>
 
-                <div class="confidence-bar">
 
-                    <div id="confidenceBar">
+            <!-- AI LEARNING PROCESS -->
+            <section class="demo-progress">
+
+                <h2>🧠 AI Learning Process</h2>
+
+                <p class="section-description">
+                    The system learns repeated actions and predicts
+                    the next interaction.
+                </p>
+
+                <div class="learning-stages">
+
+                    <div
+                        class="stage active"
+                        id="stage1">
+
+                        <span>1</span>
+                        <p>Learning</p>
+
+                    </div>
+
+                    <div
+                        class="stage"
+                        id="stage2">
+
+                        <span>2</span>
+                        <p>Predicting</p>
+
+                    </div>
+
+                    <div
+                        class="stage"
+                        id="stage3">
+
+                        <span>3</span>
+                        <p>Adapted</p>
+
                     </div>
 
                 </div>
 
-            </div>
+                <div class="progress-information">
 
-
-            <!-- LEARNING STATUS -->
-
-            <p
-                class="status"
-                id="learningStatus">
-
-                🧠 Waiting to learn your pattern
-
-            </p>
-
-        </div>
-
-
-        <!-- AI LEARNING STATISTICS -->
-
-        <div class="stats">
-
-            <h2>
-                📊 AI Learning
-            </h2>
-
-
-            <div class="stats-grid">
-
-
-                <div class="stat-card">
-
-                    <span id="interactionCount">
-                        0
-                    </span>
-
-                    <p>
-                        Interactions
-                    </p>
-
-                </div>
-
-
-                <div class="stat-card">
-
-                    <span id="predictionCount">
-                        0
-                    </span>
-
-                    <p>
-                        Predictions
-                    </p>
-
-                </div>
-
-
-                <div class="stat-card">
-
-                    <span id="accuracyValue">
+                    <strong id="demoProgressText">
                         0%
-                    </span>
+                    </strong>
+
+                </div>
+
+                <div class="demo-progress-bar">
+
+                    <div
+                        id="demoProgressBar"
+                        class="demo-progress-fill">
+                    </div>
+
+                </div>
+
+                <p id="demoStage">
+                    Waiting to start demo...
+                </p>
+
+            </section>
+
+
+            <!-- APPLICATION SIMULATION -->
+            <section class="app-simulation">
+
+                <div class="section-heading">
+
+                    <h2>📱 Smart Interaction Area</h2>
 
                     <p>
-                        Confidence
+                        Tap an application to teach the AI your behavior.
                     </p>
 
                 </div>
 
+                <div class="buttons">
 
-                <div class="stat-card">
+                    <button
+                        id="Camera"
+                        type="button"
+                        onclick="recordAction('Camera')">
 
-                    <span id="aiStatus">
-                        Learning
-                    </span>
+                        <span class="app-icon">📷</span>
+                        <span>Camera</span>
+
+                    </button>
+
+                    <button
+                        id="Messages"
+                        type="button"
+                        onclick="recordAction('Messages')">
+
+                        <span class="app-icon">💬</span>
+                        <span>Messages</span>
+
+                    </button>
+
+                    <button
+                        id="Music"
+                        type="button"
+                        onclick="recordAction('Music')">
+
+                        <span class="app-icon">🎵</span>
+                        <span>Music</span>
+
+                    </button>
+
+                    <button
+                        id="Settings"
+                        type="button"
+                        onclick="recordAction('Settings')">
+
+                        <span class="app-icon">⚙️</span>
+                        <span>Settings</span>
+
+                    </button>
+
+                </div>
+
+                <!-- MISTOUCH ALERT -->
+                <div
+                    id="mistouchAlert"
+                    class="mistouch-alert"
+                    role="alert">
+                </div>
+
+            </section>
+
+
+            <!-- PREDICTION SECTION -->
+            <section class="prediction-section">
+
+                <div class="section-heading">
+
+                    <h2>🔮 AI Prediction</h2>
 
                     <p>
-                        AI Status
+                        Future Touch predicts your next likely interaction.
                     </p>
 
                 </div>
 
-            </div>
+                <div class="next-action-card">
 
-        </div>
+                    <p class="card-label">
+                        NEXT LIKELY ACTION
+                    </p>
 
-
-        <!-- INTERACTION HISTORY -->
-
-        <div class="history">
-
-
-            <div class="history-header">
-
-                <span class="history-icon">
-                    👆
-                </span>
-
-
-                <div>
-
-                    <h2>
-                        Interaction History
+                    <h2 id="nextActionName">
+                        Waiting...
                     </h2>
 
-                    <p>
-                        Recent touch behavior
+                    <p id="nextActionConfidence">
+                        No prediction yet
                     </p>
 
                 </div>
 
-            </div>
+                <div class="prediction-result">
 
-
-            <div
-                class="history-flow"
-                id="historyText">
-
-                No interactions yet
-
-            </div>
-
-
-            <div class="learning-indicator">
-
-                🧠 AI is learning your interaction pattern
-
-            </div>
-
-        </div>
-
-
-        <!-- HOW FUTURE TOUCH WORKS -->
-
-        <div class="how-it-works">
-
-
-            <h2>
-                ⚡ How Future Touch Works
-            </h2>
-
-
-            <div class="flow-step">
-
-                <span>
-                    👆
-                </span>
-
-                <div>
-
-                    <strong>
-                        Touch
-                    </strong>
-
-                    <p>
-                        User interacts with the interface
+                    <p id="predictionText">
+                        Learning your interaction pattern...
                     </p>
 
                 </div>
 
-            </div>
+
+                <!-- CONFIDENCE -->
+                <div class="confidence-section">
+
+                    <div class="confidence-header">
+
+                        <span>Prediction Confidence</span>
+
+                        <strong id="confidenceText">
+                            0%
+                        </strong>
+
+                    </div>
+
+                    <div class="confidence-bar">
+
+                        <div
+                            id="confidenceBar"
+                            class="confidence-fill">
+                        </div>
+
+                    </div>
+
+                </div>
 
 
-            <div class="flow-arrow">
-                ↓
-            </div>
+                <!-- AI EXPLANATION -->
+                <div class="ai-explanation">
 
+                    <h3>💡 AI Explanation</h3>
 
-            <div class="flow-step">
-
-                <span>
-                    🧠
-                </span>
-
-                <div>
-
-                    <strong>
-                        Learn
-                    </strong>
-
-                    <p>
-                        AI learns the user's interaction pattern
+                    <p id="explanationText">
+                        Waiting for enough interaction data...
                     </p>
 
                 </div>
 
-            </div>
+                <p
+                    id="learningStatus"
+                    class="learning-status">
+
+                    🧠 Learning your interaction pattern...
+
+                </p>
+
+            </section>
 
 
-            <div class="flow-arrow">
-                ↓
-            </div>
+            <!-- ANALYTICS -->
+            <section class="analytics-section">
 
+                <h2>📊 Interaction Analytics</h2>
 
-            <div class="flow-step">
+                <div class="analytics-grid">
 
-                <span>
-                    🔮
-                </span>
+                    <div class="analytics-card">
 
-                <div>
+                        <span class="analytics-icon">👆</span>
 
-                    <strong>
-                        Predict
-                    </strong>
+                        <h3 id="interactionCount">
+                            0
+                        </h3>
 
-                    <p>
-                        AI predicts the next likely action
-                    </p>
+                        <p>Interactions</p>
+
+                    </div>
+
+                    <div class="analytics-card">
+
+                        <span class="analytics-icon">🔮</span>
+
+                        <h3 id="predictionCount">
+                            0
+                        </h3>
+
+                        <p>Predictions</p>
+
+                    </div>
+
+                    <div class="analytics-card">
+
+                        <span class="analytics-icon">🎯</span>
+
+                        <h3 id="accuracyValue">
+                            0%
+                        </h3>
+
+                        <p>Confidence</p>
+
+                    </div>
+
+                    <div class="analytics-card">
+
+                        <span class="analytics-icon">🧠</span>
+
+                        <h3 id="aiStatus">
+                            Learning
+                        </h3>
+
+                        <p>AI Status</p>
+
+                    </div>
 
                 </div>
 
-            </div>
+            </section>
 
 
-            <div class="flow-arrow">
-                ↓
-            </div>
+            <!-- INTERACTION HISTORY -->
+            <section class="history-section">
 
+                <h2>📝 Interaction History</h2>
 
-            <div class="flow-step">
+                <div
+                    id="historyText"
+                    class="history-box">
 
-                <span>
-                    ✨
-                </span>
-
-                <div>
-
-                    <strong>
-                        Adapt
-                    </strong>
-
-                    <p>
-                        Interface adapts to reduce interaction effort
-                    </p>
+                    No interactions yet
 
                 </div>
 
-            </div>
+            </section>
 
-        </div>
 
+            <!-- HOW IT WORKS -->
+            <section class="how-it-works">
+
+                <h2>⚡ How Future Touch Works</h2>
+
+                <div class="working-grid">
+
+                    <div class="working-card">
+
+                        <span>01</span>
+
+                        <h3>Observe</h3>
+
+                        <p>
+                            The system observes repeated user interactions.
+                        </p>
+
+                    </div>
+
+                    <div class="working-card">
+
+                        <span>02</span>
+
+                        <h3>Learn</h3>
+
+                        <p>
+                            It identifies frequently occurring action patterns.
+                        </p>
+
+                    </div>
+
+                    <div class="working-card">
+
+                        <span>03</span>
+
+                        <h3>Predict</h3>
+
+                        <p>
+                            It predicts the next possible user action.
+                        </p>
+
+                    </div>
+
+                    <div class="working-card">
+
+                        <span>04</span>
+
+                        <h3>Adapt</h3>
+
+                        <p>
+                            It highlights the predicted action
+                            to improve accessibility.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+
+        <!-- FOOTER -->
+        <footer class="footer">
+
+            <p>
+                FUTURE TOUCH © 2026
+            </p>
+
+            <p>
+                Predictive Touch Intelligence | Hackathon Prototype
+            </p>
+
+        </footer>
 
     </div>
 
-
-    <!-- JAVASCRIPT -->
 
     <script src="script.js"></script>
 
