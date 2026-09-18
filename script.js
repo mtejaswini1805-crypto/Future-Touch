@@ -1,6 +1,6 @@
-
 let history = [];
-
+let demoRunning = false;
+let demoTimer = null;
 let predictionCount = 0;
 
 let predictions = {
@@ -11,474 +11,618 @@ let predictions = {
 };
 
 
-/* =========================
-   RECORD USER INTERACTION
-   ========================= */
+// =============================
+// SAFE TEXT UPDATE
+// =============================
 
-function recordAction(action) {
+function updateText(id, text) {
+    const element = document.getElementById(id);
 
-    console.log("Clicked:", action);
+    if (element) {
+        element.textContent = text;
+    }
+}
 
-    // Check possible mis-touch before learning the new action
-    checkMistouch(action);
 
-    // Record interaction
-    history.push(action);
+// =============================
+// UPDATE CONFIDENCE BAR
+// =============================
 
-    document.getElementById("interactionCount").innerText =
-        history.length;
+function updateConfidence(value) {
+    const bar = document.getElementById("confidenceBar");
+    const text = document.getElementById("confidenceText");
 
-    document.getElementById("liveAIStatus").innerText =
-        "AI LEARNING";
+    value = Math.max(0, Math.min(100, value));
 
-    document.getElementById("liveAIMessage").innerText =
-        "Analyzing your interaction pattern...";
-
-    // Learn the sequence
-    if (history.length >= 2) {
-
-        let previous = history[history.length - 2];
-
-        if (!predictions[previous][action]) {
-            predictions[previous][action] = 0;
-        }
-
-        predictions[previous][action]++;
+    if (bar) {
+        bar.style.width = value + "%";
     }
 
-    // Show interaction history
-    document.getElementById("historyText").innerText =
-        history.join(" → ");
+    if (text) {
+        text.textContent = value + "%";
+    }
+}
 
-    // Make prediction
+
+// =============================
+// UPDATE DEMO PROGRESS
+// =============================
+
+function updateDemoProgress(percent, stage) {
+    const progressBar = document.getElementById("demoProgressBar");
+    const progressText = document.getElementById("demoProgressText");
+    const stageText = document.getElementById("demoStage");
+
+    if (progressBar) {
+        progressBar.style.width = percent + "%";
+    }
+
+    if (progressText) {
+        progressText.textContent = percent + "%";
+    }
+
+    if (stageText) {
+        stageText.textContent = stage;
+    }
+}
+
+
+// =============================
+// UPDATE LEARNING STAGES
+// =============================
+
+function updateLearningStages(stageNumber) {
+    const stages = [
+        document.getElementById("stage1"),
+        document.getElementById("stage2"),
+        document.getElementById("stage3")
+    ];
+
+    stages.forEach((stage, index) => {
+        if (!stage) return;
+
+        stage.classList.remove("active", "completed");
+
+        if (index + 1 < stageNumber) {
+            stage.classList.add("completed");
+        } else if (index + 1 === stageNumber) {
+            stage.classList.add("active");
+        }
+    });
+}
+
+
+// =============================
+// GET SMART INTERACTION BUTTONS
+// =============================
+
+function getAppButtons() {
+    return document.querySelectorAll(
+        "#Camera, #Messages, #Music, #Settings"
+    );
+}
+
+
+// =============================
+// CLEAR ALL PREDICTION HIGHLIGHTS
+// =============================
+
+function clearPredictionHighlight() {
+    getAppButtons().forEach(button => {
+        button.classList.remove("predicted");
+        button.removeAttribute("aria-current");
+
+        // Remove focus from previously selected buttons
+        button.blur();
+    });
+}
+
+
+// =============================
+// HIGHLIGHT ONLY ONE BUTTON
+// =============================
+
+function highlightPredictedButton(action) {
+    // First remove every existing highlight
+    clearPredictionHighlight();
+
+    const predictedButton = document.getElementById(action);
+
+    if (predictedButton) {
+        predictedButton.classList.add("predicted");
+        predictedButton.setAttribute("aria-current", "true");
+    }
+}
+
+
+// =============================
+// RECORD USER ACTION
+// =============================
+
+function recordAction(action) {
+    // Clear old prediction before recording a new action
+    clearPredictionHighlight();
+
+    if (!predictions[action]) {
+        predictions[action] = {};
+    }
+
+    checkMistouch(action);
+
+    if (history.length > 0) {
+        const previousAction = history[history.length - 1];
+
+        if (!predictions[previousAction]) {
+            predictions[previousAction] = {};
+        }
+
+        if (!predictions[previousAction][action]) {
+            predictions[previousAction][action] = 0;
+        }
+
+        predictions[previousAction][action]++;
+    }
+
+    history.push(action);
+
+    updateText("interactionCount", history.length);
+    updateText("historyText", history.join(" → "));
+
+    updateText("liveAIStatus", "🧠 Learning");
+
+    updateText(
+        "liveAIMessage",
+        "Understanding your interaction pattern..."
+    );
+
     makePrediction(action);
 }
 
 
-/* =========================
-   AI PREDICTION
-   ========================= */
+// =============================
+// PREDICT NEXT ACTION
+// =============================
 
 function makePrediction(currentAction) {
+    const learnedActions = predictions[currentAction];
 
-    let nextActions = predictions[currentAction];
+    if (
+        !learnedActions ||
+        Object.keys(learnedActions).length === 0
+    ) {
+        updateText("nextActionName", "Learning...");
+
+        updateText(
+            "nextActionConfidence",
+            "Waiting for more interactions"
+        );
+
+        updateText(
+            "predictionText",
+            "AI is learning your interaction pattern."
+        );
+
+        updateText(
+            "explanationText",
+            "Perform more actions to improve prediction accuracy."
+        );
+
+        updateConfidence(0);
+
+        updateText(
+            "learningStatus",
+            "Collecting interaction data"
+        );
+
+        updateText("aiStatus", "Learning");
+
+        clearPredictionHighlight();
+
+        return;
+    }
 
     let bestAction = null;
     let highestCount = 0;
+    let totalCount = 0;
 
-    // Find most likely next action
-    for (let action in nextActions) {
+    for (const action in learnedActions) {
+        totalCount += learnedActions[action];
 
-        if (nextActions[action] > highestCount) {
-
-            highestCount = nextActions[action];
+        if (learnedActions[action] > highestCount) {
+            highestCount = learnedActions[action];
             bestAction = action;
         }
     }
 
-    // Remove previous prediction highlight
-    document.querySelectorAll(".buttons button")
-        .forEach(button => {
-            button.classList.remove("predicted");
-        });
-
-    if (bestAction) {
-
-        let total = 0;
-
-        for (let action in nextActions) {
-            total += nextActions[action];
-        }
-
-        let confidence = Math.round(
-            (highestCount / total) * 100
-        );
-
-        // Highlight predicted button
-        let predictedButton =
-            document.getElementById(bestAction);
-
-        if (predictedButton) {
-            predictedButton.classList.add("predicted");
-        }
-
-        // Show prediction
-        document.getElementById("predictionText").innerText =
-            "Next likely action: ⭐ " +
-            bestAction +
-            " | Confidence: " +
-            confidence +
-            "%";
-
-        // Update Next Action Card
-        let nextActionName =
-            document.getElementById("nextActionName");
-
-        let nextActionConfidence =
-            document.getElementById("nextActionConfidence");
-
-        let nextActionCard =
-            document.querySelector(".next-action-card");
-
-        if (nextActionName) {
-            nextActionName.innerText = bestAction;
-        }
-
-        if (nextActionConfidence) {
-            nextActionConfidence.innerText =
-                confidence + "% confidence";
-        }
-
-        if (nextActionCard) {
-            nextActionCard.classList.add("active");
-        }
-
-        // Update AI Explanation
-        let explanationText =
-            document.getElementById("explanationText");
-
-        if (explanationText) {
-
-            explanationText.innerText =
-                "The system learned that " +
-                currentAction +
-                " is followed by " +
-                bestAction +
-                ". Observed pattern count: " +
-                highestCount;
-        }
-
-        // Update confidence bar
-        document.getElementById("confidenceBar")
-            .style.width = confidence + "%";
-
-        document.getElementById("confidenceText")
-            .innerText = confidence + "%";
-
-        // Update learning status
-        document.getElementById("learningStatus")
-            .innerText =
-            "🧠 Pattern detected and interface adapted";
-
-        // Update LIVE AI status
-        document.getElementById("liveAIStatus")
-            .innerText =
-            "AI PREDICTION READY";
-
-        document.getElementById("liveAIMessage")
-            .innerText =
-            "Next action: " + bestAction;
-
-        // Update prediction statistics
-        predictionCount++;
-
-        document.getElementById("predictionCount")
-            .innerText = predictionCount;
-
-        document.getElementById("accuracyValue")
-            .innerText = confidence + "%";
-
-        document.getElementById("aiStatus")
-            .innerText = "Active";
-
-    } else {
-
-        // No prediction yet
-        document.getElementById("predictionText")
-            .innerText =
-            "Learning your interaction pattern...";
-
-        // Reset confidence
-        document.getElementById("confidenceBar")
-            .style.width = "0%";
-
-        document.getElementById("confidenceText")
-            .innerText = "0%";
-
-        // Reset Next Action Card
-        let nextActionName =
-            document.getElementById("nextActionName");
-
-        let nextActionConfidence =
-            document.getElementById("nextActionConfidence");
-
-        let nextActionCard =
-            document.querySelector(".next-action-card");
-
-        if (nextActionName) {
-            nextActionName.innerText = "Waiting...";
-        }
-
-        if (nextActionConfidence) {
-            nextActionConfidence.innerText =
-                "No prediction yet";
-        }
-
-        if (nextActionCard) {
-            nextActionCard.classList.remove("active");
-        }
-
-        // Reset AI Explanation
-        let explanationText =
-            document.getElementById("explanationText");
-
-        if (explanationText) {
-
-            explanationText.innerText =
-                "Waiting for enough interaction data...";
-        }
-
-        // Update learning status
-        document.getElementById("learningStatus")
-            .innerText =
-            "🧠 Learning your interaction pattern...";
-
-        document.getElementById("aiStatus")
-            .innerText = "Learning";
-
-        // Update LIVE AI status
-        document.getElementById("liveAIStatus")
-            .innerText = "AI LEARNING";
-
-        document.getElementById("liveAIMessage")
-            .innerText =
-            "Building your interaction pattern...";
+    if (!bestAction || totalCount === 0) {
+        clearPredictionHighlight();
+        return;
     }
+
+    const confidence = Math.round(
+        (highestCount / totalCount) * 100
+    );
+
+    // Highlight ONLY the current predicted action
+    highlightPredictedButton(bestAction);
+
+    updateText(
+        "nextActionName",
+        bestAction
+    );
+
+    updateText(
+        "nextActionConfidence",
+        confidence + "% confidence"
+    );
+
+    updateText(
+        "predictionText",
+        "Next predicted action: " + bestAction
+    );
+
+    updateText(
+        "explanationText",
+        "Based on your previous interactions, AI predicts " +
+        bestAction +
+        " after " +
+        currentAction +
+        "."
+    );
+
+    updateConfidence(confidence);
+
+    updateText(
+        "learningStatus",
+        "Pattern detected"
+    );
+
+    updateText(
+        "aiStatus",
+        "Active"
+    );
+
+    predictionCount++;
+
+    updateText(
+        "predictionCount",
+        predictionCount
+    );
+
+    updateText(
+        "accuracyValue",
+        confidence + "%"
+    );
+
+    updateText(
+        "liveAIStatus",
+        "🔮 Prediction Ready"
+    );
+
+    updateText(
+        "liveAIMessage",
+        bestAction +
+        " is likely to be your next action."
+    );
 }
 
 
-/* =========================
-   MIS-TOUCH DETECTION
-   ========================= */
+// =============================
+// DETECT POSSIBLE MIS-TOUCH
+// =============================
 
 function checkMistouch(action) {
+    const alertBox = document.getElementById("mistouchAlert");
 
-    // Need at least one previous action
-    if (history.length < 1) {
+    if (!alertBox || history.length === 0) {
         return;
     }
 
-    let previousAction =
-        history[history.length - 1];
+    const previousAction = history[history.length - 1];
+    const learnedActions = predictions[previousAction];
 
-    let nextActions =
-        predictions[previousAction];
+    if (
+        !learnedActions ||
+        Object.keys(learnedActions).length === 0
+    ) {
+        alertBox.style.display = "none";
+        return;
+    }
 
-    let bestAction = null;
+    let expectedAction = null;
     let highestCount = 0;
 
-    for (let next in nextActions) {
-
-        if (nextActions[next] > highestCount) {
-
-            highestCount = nextActions[next];
-            bestAction = next;
+    for (const nextAction in learnedActions) {
+        if (learnedActions[nextAction] > highestCount) {
+            highestCount = learnedActions[nextAction];
+            expectedAction = nextAction;
         }
     }
 
-    let alertBox =
-        document.getElementById("mistouchAlert");
+    if (expectedAction && action !== expectedAction) {
+        alertBox.style.display = "block";
 
-    if (!alertBox) {
-        return;
-    }
-
-    if (bestAction && action !== bestAction) {
-
-        alertBox.innerText =
-            "⚠️ Did you mean " +
-            bestAction +
-            "?";
-
+        updateText(
+            "mistouchText",
+            "You usually select " +
+            expectedAction +
+            " after " +
+            previousAction +
+            "."
+        );
     } else {
-
-        alertBox.innerText = "";
+        alertBox.style.display = "none";
     }
 }
 
 
-/* =========================
-   ONE-HANDED MODE
-   ========================= */
+// =============================
+// ONE-HANDED MODE
+// =============================
 
 function toggleOneHanded() {
+    const container = document.querySelector(".container");
+    const button = document.getElementById("oneHandedToggle");
 
-    let container =
-        document.querySelector(".container");
-
-    let toggle =
-        document.getElementById("oneHandedToggle");
-
-    if (!container || !toggle) {
+    if (!container || !button) {
         return;
     }
 
     container.classList.toggle("one-handed");
-
-    toggle.classList.toggle("active");
+    button.classList.toggle("active");
 
     if (container.classList.contains("one-handed")) {
-
-        toggle.innerText = "ON";
-
+        button.textContent = "📱 One-Handed Mode: ON";
     } else {
-
-        toggle.innerText = "OFF";
+        button.textContent = "📱 One-Handed Mode: OFF";
     }
 }
 
 
-/* =========================
-   HACKATHON DEMO MODE
-   ========================= */
+// =============================
+// RESET PROTOTYPE
+// =============================
 
-function startDemo() {
+function resetPrototype(keepDemoRunning = false) {
+    if (demoTimer) {
+        clearTimeout(demoTimer);
+        demoTimer = null;
+    }
 
-    // Reset previous demo
+    if (!keepDemoRunning) {
+        demoRunning = false;
+
+        updateText(
+            "demoButton",
+            "▶ Start Demo"
+        );
+    }
+
     history = [];
-
     predictionCount = 0;
 
     predictions = {
-
         Camera: {},
         Messages: {},
         Music: {},
         Settings: {}
-
     };
 
-    // Reset statistics
-    document.getElementById("interactionCount")
-        .innerText = "0";
+    updateText("interactionCount", "0");
+    updateText("predictionCount", "0");
+    updateText("accuracyValue", "0%");
+    updateText("aiStatus", "Ready");
 
-    document.getElementById("predictionCount")
-        .innerText = "0";
+    updateText(
+        "historyText",
+        "No interactions yet"
+    );
 
-    document.getElementById("accuracyValue")
-        .innerText = "0%";
+    updateText(
+        "nextActionName",
+        "Waiting..."
+    );
 
-    document.getElementById("aiStatus")
-        .innerText = "Learning";
+    updateText(
+        "nextActionConfidence",
+        "No prediction yet"
+    );
 
-    // Reset history
-    document.getElementById("historyText")
-        .innerText = "Starting demo...";
+    updateText(
+        "predictionText",
+        "Start interacting to generate predictions."
+    );
 
-    // Reset prediction
-    document.getElementById("predictionText")
-        .innerText =
-        "Learning your interaction pattern...";
+    updateText(
+        "explanationText",
+        "AI will learn your interaction patterns."
+    );
 
-    // Reset confidence
-    document.getElementById("confidenceBar")
-        .style.width = "0%";
+    updateText(
+        "learningStatus",
+        "Waiting for data"
+    );
 
-    document.getElementById("confidenceText")
-        .innerText = "0%";
+    updateText(
+        "liveAIStatus",
+        "🟢 Ready"
+    );
 
-    // Reset Next Action Card
-    let nextActionName =
-        document.getElementById("nextActionName");
+    updateText(
+        "liveAIMessage",
+        "AI is ready to learn your behavior."
+    );
 
-    let nextActionConfidence =
-        document.getElementById("nextActionConfidence");
+    updateConfidence(0);
 
-    let nextActionCard =
-        document.querySelector(".next-action-card");
+    const alertBox = document.getElementById("mistouchAlert");
 
-    if (nextActionName) {
-        nextActionName.innerText = "Waiting...";
+    if (alertBox) {
+        alertBox.style.display = "none";
     }
 
-    if (nextActionConfidence) {
-        nextActionConfidence.innerText =
-            "No prediction yet";
+    // Remove all green highlights
+    clearPredictionHighlight();
+
+    updateDemoProgress(
+        0,
+        "Waiting to start demo..."
+    );
+
+    updateLearningStages(1);
+}
+
+
+// =============================
+// START AI DEMONSTRATION
+// =============================
+
+function startDemo() {
+    if (demoRunning) {
+        return;
     }
 
-    if (nextActionCard) {
-        nextActionCard.classList.remove("active");
-    }
+    demoRunning = true;
 
-    // Reset AI Explanation
-    let explanationText =
-        document.getElementById("explanationText");
+    resetPrototype(true);
 
-    if (explanationText) {
+    updateText(
+        "demoButton",
+        "⏳ Demo Running..."
+    );
 
-        explanationText.innerText =
-            "Waiting for enough interaction data...";
-    }
+    updateDemoProgress(
+        0,
+        "🧠 AI is preparing to learn..."
+    );
 
-    // Reset live AI status
-    document.getElementById("liveAIStatus")
-        .innerText = "AI LEARNING";
+    updateLearningStages(1);
 
-    document.getElementById("liveAIMessage")
-        .innerText =
-        "Learning repeated touch behavior...";
+    updateText(
+        "liveAIStatus",
+        "🧠 AI Learning"
+    );
 
-    // Demo status
-    document.getElementById("learningStatus")
-        .innerText =
-        "🎬 Demo running — AI is learning your pattern";
+    updateText(
+        "liveAIMessage",
+        "AI is learning your touch behavior..."
+    );
 
-    // Remove predicted highlights
-    document.querySelectorAll(".buttons button")
-        .forEach(button => {
-            button.classList.remove("predicted");
-        });
-
-    // Demo pattern
-    let demoActions = [
-
+    const demoActions = [
         "Camera",
         "Music",
         "Camera",
         "Music",
         "Camera",
         "Music"
-
     ];
 
     let index = 0;
 
-    // Play actions
     function playNextAction() {
+        if (!demoRunning) {
+            return;
+        }
 
         if (index >= demoActions.length) {
+            demoRunning = false;
+            demoTimer = null;
 
-            document.getElementById("learningStatus")
-                .innerText =
-                "🧠 Pattern learned — Music predicted after Camera";
+            updateDemoProgress(
+                100,
+                "✅ Pattern learned successfully!"
+            );
 
-            document.getElementById("aiStatus")
-                .innerText = "Ready";
+            updateLearningStages(4);
 
-            document.getElementById("liveAIStatus")
-                .innerText = "AI READY";
+            updateText(
+                "demoButton",
+                "✅ Pattern Learned"
+            );
 
-            document.getElementById("liveAIMessage")
-                .innerText =
-                "Pattern learned successfully";
+            updateText(
+                "liveAIStatus",
+                "🟢 Pattern Learned"
+            );
+
+            updateText(
+                "liveAIMessage",
+                "Pattern learned: Music frequently follows Camera."
+            );
+
+            updateText(
+                "explanationText",
+                "AI detected a repeated Camera → Music interaction pattern."
+            );
+
+            updateText(
+                "predictionText",
+                "Final prediction: Music after Camera."
+            );
+
+            updateText(
+                "learningStatus",
+                "Pattern learned successfully"
+            );
+
+            updateText(
+                "aiStatus",
+                "Ready"
+            );
 
             return;
         }
 
-        let action = demoActions[index];
+        const action = demoActions[index];
 
-        // Simulate interaction
         recordAction(action);
 
         index++;
 
-        // Next action after 1.2 seconds
-        setTimeout(
+        const progress = Math.round(
+            (index / demoActions.length) * 100
+        );
+
+        if (index <= 2) {
+            updateLearningStages(1);
+
+            updateDemoProgress(
+                progress,
+                "🧠 Learning interaction patterns..."
+            );
+        } else if (index <= 4) {
+            updateLearningStages(2);
+
+            updateDemoProgress(
+                progress,
+                "🔮 Predicting next action..."
+            );
+        } else {
+            updateLearningStages(3);
+
+            updateDemoProgress(
+                progress,
+                "✨ Adapting interface..."
+            );
+        }
+
+        demoTimer = setTimeout(
             playNextAction,
             1200
         );
     }
 
-    // Start
     playNextAction();
 }
+
+
+// =============================
+// PAGE INITIALIZATION
+// =============================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
+        resetPrototype();
+    }
+);
